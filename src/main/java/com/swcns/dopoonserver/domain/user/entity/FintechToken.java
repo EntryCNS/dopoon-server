@@ -1,9 +1,6 @@
 package com.swcns.dopoonserver.domain.user.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -26,4 +23,9 @@ public class FintechToken {
 
     @Column(nullable = false)
     private String refreshToken;
+
+    public void updateTokens(String accessToken, String refreshToken) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+    }
 }

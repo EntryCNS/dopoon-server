@@ -1,5 +1,6 @@
 package com.swcns.dopoonserver.global.infra.finance;
 
+import com.swcns.dopoonserver.global.infra.finance.http.FinanceAccountHttpApi;
 import com.swcns.dopoonserver.global.infra.finance.http.FinanceTokenHttpApi;
 import com.swcns.dopoonserver.global.infra.finance.http.FinanceUserHttpApi;
 import okhttp3.OkHttpClient;
@@ -41,5 +42,11 @@ public class FinanceConfiguration {
     public FinanceUserHttpApi financeUserHttpApi() {
         Retrofit retrofit = financeRetrofit();
         return retrofit.create(FinanceUserHttpApi.class);
+    }
+
+    @Bean
+    public FinanceAccountHttpApi financeAccountHttpApi() {
+        Retrofit retrofit = financeRetrofit();
+        return retrofit.create(FinanceAccountHttpApi.class);
     }
 }

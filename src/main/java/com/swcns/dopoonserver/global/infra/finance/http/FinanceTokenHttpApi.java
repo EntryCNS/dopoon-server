@@ -34,4 +34,14 @@ public interface FinanceTokenHttpApi {
         @Field("grant_type") String grantType
     );
 
+    @FormUrlEncoded
+    @POST("/oauth/2.0/token")
+    Call<FinanceTokenResponse> getTokenByRefreshToken(
+            @Field("client_id") String clientId,
+            @Field("client_secret") String clientSecret,
+            @Field("refresh_token") String refreshToken,
+            @Field("scope") String scope,
+            @Field("grant_type") String grantType
+    );
+
 }

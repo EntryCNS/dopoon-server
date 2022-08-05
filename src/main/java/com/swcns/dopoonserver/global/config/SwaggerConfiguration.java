@@ -36,7 +36,7 @@ public class SwaggerConfiguration {
                 .securityContexts(List.of(securityContext()))
                 .securitySchemes(List.of(jwtKey()))
                 .apiInfo(apiInfo()).select()
-                .apis(RequestHandlerSelectors.any())
+                .apis(RequestHandlerSelectors.basePackage("com.swcns.dopoonserver"))
                 .paths(PathSelectors.any())
                 .build()
                 .useDefaultResponseMessages(false);
