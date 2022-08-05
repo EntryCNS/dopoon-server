@@ -25,7 +25,7 @@ public class BillQueryJobScheduler {
         log.info("job starting.. in {}", System.currentTimeMillis());
 
         Calendar startCalendar = Calendar.getInstance();
-        startCalendar.add(Calendar.MONTH, 10);
+        startCalendar.add(Calendar.MONTH, -10);
 
         Calendar endCalendar = Calendar.getInstance();
 
