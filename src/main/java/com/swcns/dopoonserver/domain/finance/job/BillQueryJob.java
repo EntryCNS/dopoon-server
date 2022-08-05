@@ -15,6 +15,7 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -61,7 +62,7 @@ public class BillQueryJob {
 
                     log.info("{} bills have been found in scrap step.", bills.size());
 
-                    chunkContext.getStepContext().setAttribute("bills", bills);
+                    chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext().put("bills", bills);
 
                     return RepeatStatus.FINISHED;
                 }).build();
@@ -71,7 +72,7 @@ public class BillQueryJob {
     public Step removeDuplicates() {
         return stepBuilderFactory.get("remove-duplicates")
                 .tasklet((contribution, chunkContext) -> {
-                    List<Bill> bills = (List<Bill>) chunkContext.getAttribute("bills");
+                    List<Bill> bills = (List<Bill>) chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext().get("bills");
 
                     List<String> originalCodes = billRepository.findAll().stream().map(it -> it.getBillCode()).collect(Collectors.toList());
                     bills = bills.stream().filter(it ->
@@ -87,7 +88,7 @@ public class BillQueryJob {
     public Step updateDatabase() {
         return stepBuilderFactory.get("update-db")
                 .tasklet((contribution, chunkContext) -> {
-                    List<Bill> bills = (List<Bill>) chunkContext.getAttribute("bills");
+                    List<Bill> bills = (List<Bill>) chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext().get("bills");
 
                     billRepository.saveAll(bills);
                     bills.forEach(bill -> {

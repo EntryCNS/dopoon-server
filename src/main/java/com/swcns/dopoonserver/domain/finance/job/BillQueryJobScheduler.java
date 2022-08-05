@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -20,7 +22,16 @@ public class BillQueryJobScheduler {
     private final JobLauncher jobLauncher;
     private final BillQueryJob billQueryJob;
 
+    @PostConstruct
+    public void onStartUp() {
+        job();
+    }
+
     @Scheduled(cron = "* 0/30 * * * * *")
+    public void onSchedule() {
+        job();
+    }
+
     public void job() {
         log.info("job starting.. in {}", System.currentTimeMillis());
 
@@ -29,12 +40,13 @@ public class BillQueryJobScheduler {
 
         Calendar endCalendar = Calendar.getInstance();
 
-        Map<String, JobParameter> arguments = new HashMap<>();
-        arguments.put("date_start", new JobParameter(Date.from(startCalendar.toInstant())));
-        arguments.put("date_end", new JobParameter(Date.from(endCalendar.toInstant())));
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addDate("date_start", Date.from(startCalendar.toInstant()))
+                .addDate("date_end", Date.from(endCalendar.toInstant()))
+                .toJobParameters();
 
         try {
-            jobLauncher.run(billQueryJob.syncBillsJob(), new JobParameters(arguments));
+            jobLauncher.run(billQueryJob.syncBillsJob(), jobParameters);
         } catch (Exception ex) {
             log.error(ex);
         }

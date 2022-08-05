@@ -18,13 +18,8 @@ spring:
   batch:
     jdbc:
       initialize-schema: always
-
-logging:
-  level:
-    org:
-      hibernate:
-        sql: INFO
-        type: TRACE
+    job:
+      enabled: false
 
 jwt:
   secret-key: ${JWT_KEY}
