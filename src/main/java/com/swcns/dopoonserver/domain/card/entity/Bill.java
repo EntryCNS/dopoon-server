@@ -30,4 +30,15 @@ public class Bill {
     private Integer price;
 
     private LocalDateTime billedAt;
+
+    public String getBillCode() {
+        return String.format("%s.%s:%d/%s", paymentCard.getId(), storeName, price, billedAt);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if((obj instanceof Bill)) return false;
+
+        return getBillCode().equals(((Bill)(obj)).getBillCode());
+    }
 }

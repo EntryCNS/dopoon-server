@@ -34,4 +34,8 @@ public class Card {
 
     @OneToMany(mappedBy = "paymentCard")
     private List<Bill> billList;
+
+    public void addBill(Bill bill) {
+        billList.add(bill);
+    }
 }

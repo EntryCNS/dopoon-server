@@ -109,10 +109,7 @@ public class OpenFinanceService {
     }
 
     @Transactional(rollbackFor = RuntimeException.class)
-    public FintechToken updateToken() {
-        User user = userFacade.queryCurrentUser(true)
-                .orElseThrow(UserNotFoundException::new);
-
+    public FintechToken updateToken(User user) {
         try {
             Response<FinanceTokenResponse> response = financeTokenHttpApi.getTokenByRefreshToken(
                     financeProperties.getClientId(), financeProperties.getClientSecret(),user.getFintechToken().getRefreshToken(),
@@ -125,11 +122,12 @@ public class OpenFinanceService {
         return user.getFintechToken();
     }
 
+    @Transactional
     public List<Bill> getBillHistoryOf(Card card, Date from, Date to) {
         final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("yyyyMMdd");
         final SimpleDateFormat REQUEST_TIME_FORMATTER = new SimpleDateFormat("yyyyMMddhhmmss");
 
-        FintechToken fintechToken = updateToken();
+        FintechToken fintechToken = updateToken(card.getOwner());
 
         String bankTranId = String.format("%sU%s", financeProperties.getUseOrganizationCode(), randomUtil.generateRandomString(9));
 
@@ -143,6 +141,7 @@ public class OpenFinanceService {
             return list.body().getResList().stream()
                     .map(it ->
                             Bill.builder()
+                                    .paymentCard(card)
                                     .billedAt(LocalDateTime.of(
                                         Integer.parseInt(it.getTranDate().substring(0, 3)),
                                                     Integer.parseInt(it.getTranDate().substring(4, 5)),
