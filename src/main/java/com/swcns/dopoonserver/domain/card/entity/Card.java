@@ -24,6 +24,12 @@ public class Card {
     private User owner;
 
     @NotNull
+    private String nickname;
+
+    @NotNull
+    private String companyName;
+
+    @NotNull
     private String cardNumber;
 
     @OneToMany(mappedBy = "paymentCard")

@@ -51,6 +51,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/finance/**").authenticated().and()
 
+                // fintech
+                .authorizeRequests()
+                .antMatchers("/fintech/oauth").authenticated()
+                .antMatchers("/fintech/register").permitAll().and()
+
                 // card
                 .authorizeRequests()
                 .antMatchers("/card/**").authenticated().and()

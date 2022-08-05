@@ -44,14 +44,27 @@ public class User implements UserDetails {
     @NotNull
     private String password;
 
+    @OneToOne(mappedBy = "user")
+    private FintechToken fintechToken;
+    public void setFintechToken(FintechToken fintechToken) {
+        this.fintechToken = fintechToken;
+    }
+    public void clearFintechToken() {
+        this.fintechToken = null;
+    }
+
     @OneToMany(mappedBy = "owner")
     private List<Card> cards;
 
     @OneToOne
     private Goal goal;
 
-    public void addCards(Card card) {
+    public void addCard(Card card) {
         this.cards.add(card);
+    }
+
+    public void addCards(List<Card> cards) {
+        this.cards.addAll(cards);
     }
 
     public void setGoal(Goal newGoal) {

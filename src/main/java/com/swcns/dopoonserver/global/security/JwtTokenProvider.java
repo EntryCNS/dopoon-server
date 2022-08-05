@@ -26,6 +26,11 @@ public class JwtTokenProvider {
         return generateToken(id, jwtProperties.getSecretKey(), jwtProperties.getAccessExp());
     }
 
+    // 외부 인프라용 단기간 토큰 발급
+    public String generateExternalApiToken(String id) {
+        return generateToken(id, jwtProperties.getSecretKey(), 60 * 3L); // 3분 제한시간 부여
+    }
+
     public String generateRefreshToken(String id) {
         return generateToken(id, jwtProperties.getSecretKey(), jwtProperties.getRefreshExp());
     }
