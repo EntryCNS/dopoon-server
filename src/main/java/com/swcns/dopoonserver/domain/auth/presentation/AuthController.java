@@ -3,7 +3,7 @@ package com.swcns.dopoonserver.domain.auth.presentation;
 import com.swcns.dopoonserver.domain.auth.presentation.dto.request.SignInRequest;
 import com.swcns.dopoonserver.domain.auth.presentation.dto.request.SignupRequest;
 import com.swcns.dopoonserver.domain.auth.presentation.dto.response.SignInResponse;
-import com.swcns.dopoonserver.domain.auth.presentation.service.AuthService;
+import com.swcns.dopoonserver.domain.auth.service.AuthService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;

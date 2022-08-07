@@ -1,4 +1,4 @@
-package com.swcns.dopoonserver.domain.auth.presentation.service;
+package com.swcns.dopoonserver.domain.auth.service;
 
 import com.swcns.dopoonserver.domain.auth.presentation.dto.request.SignInRequest;
 import com.swcns.dopoonserver.domain.auth.presentation.dto.request.SignupRequest;
