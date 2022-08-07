@@ -21,6 +21,10 @@ public class ExpenditureResponse {
     @ApiModelProperty("소비 카테고리")
     private String category;
 
+    @ApiModelProperty("카드 결제사")
+    @JsonProperty("card_company")
+    private String cardCompany;
+
     @ApiModelProperty("결제 금액")
     private int bill;
 }

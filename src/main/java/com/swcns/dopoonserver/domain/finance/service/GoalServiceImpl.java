@@ -174,6 +174,7 @@ public class GoalServiceImpl implements GoalService {
             return ExpenditureResponse.builder()
                     .store(bill.getStoreName())
                     .bill(bill.getPrice())
+                    .cardCompany(bill.getPaymentCard().getCompanyName())
                     .category(bill.getBillCategory().name())
                     .purchasedAt(dateTimeFormatter.format(bill.getBilledAt()))
                     .build();
