@@ -164,7 +164,7 @@ public class GoalServiceImpl implements GoalService {
         User user = userFacade.queryCurrentUser()
                 .orElseThrow(UserNotFoundException::new);
 
-        Pageable pageRequest = PageRequest.of(page, 10);
+        Pageable pageRequest = PageRequest.of(page, 10, Sort.by("billedAt", "storeName").descending());
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = LocalDate.of(year, month, 31);
 
