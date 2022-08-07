@@ -5,6 +5,8 @@ import com.swcns.dopoonserver.global.exception.defaults.RedirectFailedException;
 import com.swcns.dopoonserver.global.utils.csrf.CsrfToken;
 import com.swcns.dopoonserver.global.utils.csrf.ValidCsrf;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +21,8 @@ import javax.servlet.http.HttpServletResponse;
 public class FintechController {
     private final FintechService fintechService;
 
-    @ApiOperation("핀테크 O-Auth 인증 URL로 리다이렉트합니다")
+    @ApiImplicitParam(name = "Authorization", value = "jwt token ('Bearer' 제외)", required = true, paramType = "header", dataTypeClass = String.class)
+    @ApiOperation("[Web-View 전용] 핀테크 O-Auth 인증 URL로 리다이렉트합니다")
     @GetMapping("/oauth")
     public void redirectOAuthUrl(HttpServletResponse response) {
         try {
@@ -29,7 +32,12 @@ public class FintechController {
         }
     }
 
-    @ApiOperation("핀테크 계좌를 등록합니다")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "code", value = "OAuth 인증 코드", required = true, paramType = "query", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "client_info", value = "JWT 토큰", required = true, paramType = "query", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "state", value = "CSRF 토큰", required = true, paramType = "query", dataTypeClass = String.class)
+    })
+    @ApiOperation("[Web-View 전용] 핀테크 계좌를 등록합니다. (직접 호출 불필요)")
     @ResponseStatus(HttpStatus.CREATED)
     @ValidCsrf
     @GetMapping("/register")
