@@ -3,11 +3,12 @@ package com.swcns.dopoonserver.domain.finance.presentation.dto.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Range;
 
-@AllArgsConstructor @NoArgsConstructor @Getter
+@AllArgsConstructor @NoArgsConstructor @Getter @Builder
 public class GoalCreationRequest {
     @ApiModelProperty("목표 상품 이름")
     @JsonProperty("product_name")

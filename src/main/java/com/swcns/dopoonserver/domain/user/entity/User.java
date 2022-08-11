@@ -1,7 +1,9 @@
 package com.swcns.dopoonserver.domain.user.entity;
 
 import com.swcns.dopoonserver.domain.card.entity.Card;
+import com.swcns.dopoonserver.domain.finance.entity.CurrentGoal;
 import com.swcns.dopoonserver.domain.finance.entity.Goal;
+import com.swcns.dopoonserver.domain.finance.entity.GoalHistory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -55,21 +57,24 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "owner")
     private List<Card> cards;
-
-    @OneToOne
-    private Goal goal;
-
     public void addCard(Card card) {
         this.cards.add(card);
     }
-
     public void addCards(List<Card> cards) {
         this.cards.addAll(cards);
     }
-
-    public void setGoal(Goal newGoal) {
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private CurrentGoal goal;
+    public void setGoal(CurrentGoal newGoal) {
         this.goal = newGoal;
     }
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<GoalHistory> goalHistories;
+    public void addGoalHistory(GoalHistory oldGoal) {
+        this.goalHistories.add(oldGoal);
+    }
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

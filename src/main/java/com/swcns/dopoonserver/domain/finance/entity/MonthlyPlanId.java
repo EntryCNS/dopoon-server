@@ -21,5 +21,5 @@ public class MonthlyPlanId implements Serializable {
 
     @ManyToOne
     @JoinColumn
-    private Goal goal;
+    private CurrentGoal goal;
 }

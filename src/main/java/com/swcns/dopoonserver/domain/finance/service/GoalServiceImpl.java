@@ -3,21 +3,23 @@ package com.swcns.dopoonserver.domain.finance.service;
 import com.swcns.dopoonserver.domain.card.entity.Bill;
 import com.swcns.dopoonserver.domain.card.repository.BillRepository;
 import com.swcns.dopoonserver.domain.card.type.BillCategory;
-import com.swcns.dopoonserver.domain.finance.entity.Goal;
+import com.swcns.dopoonserver.domain.finance.entity.CurrentGoal;
+import com.swcns.dopoonserver.domain.finance.entity.GoalHistory;
 import com.swcns.dopoonserver.domain.finance.entity.MonthlyPlan;
 import com.swcns.dopoonserver.domain.finance.entity.MonthlyPlanId;
 import com.swcns.dopoonserver.domain.finance.exception.GoalCreationImpossibleException;
 import com.swcns.dopoonserver.domain.finance.presentation.dto.request.GoalCreationRequest;
-import com.swcns.dopoonserver.domain.finance.presentation.dto.response.ExpenditureListResponse;
-import com.swcns.dopoonserver.domain.finance.presentation.dto.response.ExpenditureResponse;
-import com.swcns.dopoonserver.domain.finance.presentation.dto.response.GoalResponse;
-import com.swcns.dopoonserver.domain.finance.presentation.dto.response.UsableMoneyResponse;
-import com.swcns.dopoonserver.domain.finance.repository.GoalRepository;
+import com.swcns.dopoonserver.domain.finance.presentation.dto.response.*;
+import com.swcns.dopoonserver.domain.finance.repository.CurrentGoalRepository;
+import com.swcns.dopoonserver.domain.finance.repository.GoalHistoryRepository;
 import com.swcns.dopoonserver.domain.finance.repository.MonthlyPlanRepository;
+import com.swcns.dopoonserver.domain.finance.type.GoalFinishType;
 import com.swcns.dopoonserver.domain.user.entity.User;
 import com.swcns.dopoonserver.domain.user.exception.UserNotFoundException;
 import com.swcns.dopoonserver.domain.user.facade.UserFacade;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,17 +27,20 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Log4j2
 @RequiredArgsConstructor
 @Service
 public class GoalServiceImpl implements GoalService {
 
     private final UserFacade userFacade;
-    private final GoalRepository goalRepository;
+    private final CurrentGoalRepository currentGoalRepository;
+    private final GoalHistoryRepository goalHistoryRepository;
     private final MonthlyPlanRepository monthlyPlanRepository;
     private final BillRepository billRepository;
 
@@ -47,22 +52,23 @@ public class GoalServiceImpl implements GoalService {
         return saved * month;
     }
 
-    @Override
-    @Transactional
-    public void createNewGoal(GoalCreationRequest goalCreationRequest) {
+    private List<MonthlyPlan> generatePlan(GoalCreationRequest goalCreationRequest, CurrentGoal goal) {
         final double REDUCE_UNIT = 0.001;
 
         User user = userFacade.queryCurrentUser(true)
                 .orElseThrow(UserNotFoundException::new);
 
         List<Bill> bills = new ArrayList<>();
-        user.getCards().stream()
-                .forEach(it -> bills.addAll(it.getBillList()));
+        LocalDate billStartDate = LocalDate.of(LocalDate.now().getYear(), LocalDate.now().getMonthValue(), 1);
+        LocalDate billEndDate = LocalDate.of(LocalDate.now().getYear(), LocalDate.now().getMonthValue(), 32);
+        final SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+
+        bills.addAll(billRepository.findAllByUser(user.getId(), dateFormatter.format(billStartDate), dateFormatter.format(billEndDate)));
 
         Map<BillCategory, Integer> currentUsages = new HashMap<>();
         bills.forEach(bill -> currentUsages.put(bill.getBillCategory(), currentUsages.getOrDefault(bill.getBillCategory(), 0) + bill.getPrice()));
 
-        BillCategory categories[] = BillCategory.values();
+        BillCategory[] categories = BillCategory.values();
         Map<BillCategory, Double> reducePercents = new HashMap<>();
         int goalCost = goalCreationRequest.getCost();
         Map<BillCategory, Double> maximumPercents = new HashMap<>();
@@ -86,25 +92,11 @@ public class GoalServiceImpl implements GoalService {
             }
         }
 
-        LocalDate finishDate = LocalDate.now();
-        finishDate.plusMonths(goalCreationRequest.getMonth());
-
-        Goal newGoal = Goal.builder()
-                .user(user)
-                .productName(goalCreationRequest.getProductName())
-                .productCost(goalCreationRequest.getCost())
-                .isDecided(false)
-                .productImageUrl("TESTING")
-                .finishAt(finishDate)
-                .monthlyPlanList(new ArrayList<>())
-                .build();
-        newGoal = goalRepository.save(newGoal);
-        user.setGoal(newGoal);
-
-        LocalDate today = LocalDate.now();
+        List<MonthlyPlan> result = new ArrayList<>();
+        LocalDate today = LocalDate.of(LocalDate.now().getYear(), LocalDate.now().getMonth(), 1);
         for (BillCategory category: categories) {
             MonthlyPlanId planId = MonthlyPlanId.builder()
-                    .goal(newGoal)
+                    .goal(goal)
                     .yearAndMonth(today)
                     .category(category)
                     .build();
@@ -113,10 +105,38 @@ public class GoalServiceImpl implements GoalService {
                     .id(planId)
                     .usableMoney((int)(currentUsages.get(category) - currentUsages.get(category) * (reducePercents.get(category) / 100)))
                     .build();
+            result.add(plan);
+        }
+
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public void createNewGoal(GoalCreationRequest goalCreationRequest) {
+        User user = userFacade.queryCurrentUser(true)
+                .orElseThrow(UserNotFoundException::new);
+
+        LocalDate finishDate = LocalDate.now();
+        finishDate.plusMonths(goalCreationRequest.getMonth());
+
+        CurrentGoal newGoal = CurrentGoal.builder()
+                .user(user)
+                .productName(goalCreationRequest.getProductName())
+                .productCost(goalCreationRequest.getCost())
+                .isDecided(false)
+                .productImageUrl("TESTING")
+                .finishAt(finishDate)
+                .monthlyPlanList(new ArrayList<>())
+                .build();
+        newGoal = currentGoalRepository.save(newGoal);
+        user.setGoal(newGoal);
+        List<MonthlyPlan> plans = generatePlan(goalCreationRequest, newGoal);
+        for(MonthlyPlan plan : plans) {
             newGoal.addMonthlyPlan(monthlyPlanRepository.save(plan));
         }
 
-        goalRepository.save(newGoal);
+        currentGoalRepository.save(newGoal);
     }
 
     @Override
@@ -127,8 +147,29 @@ public class GoalServiceImpl implements GoalService {
         User user = userFacade.queryCurrentUser(true)
                 .orElseThrow(UserNotFoundException::new);
 
-        Goal goal = user.getGoal();
-        List<MonthlyPlan> plans = goal.getMonthlyPlanList();
+        CurrentGoal goal = user.getGoal();
+        LocalDate currentMonth = LocalDate.of(LocalDate.now().getYear(), LocalDate.now().getMonth(), 1);
+        List<MonthlyPlan> plans = monthlyPlanRepository.getPlansByMonth(goal, currentMonth);
+        if(plans.size() == 0) {
+            log.info("이번달 계획이 존재하지 않으므로 계획을 생성합니다");
+            LocalDate periodDate = goal.getFinishAt().minusYears(goal.getStartAt().getYear()).minusMonths(goal.getStartAt().getMonthValue());
+            LocalDate leftDate = goal.getFinishAt().minusYears(LocalDate.now().getYear()).minusMonths(LocalDate.now().getMonthValue());
+
+            int leftMonths = leftDate.getYear() * 12 + leftDate.getMonthValue();
+            int periodMonths = periodDate.getYear() * 12 + periodDate.getMonthValue();
+
+            GoalCreationRequest goalDetailForMonth = GoalCreationRequest.builder()
+                    .month(leftMonths)
+                    .cost((goal.getProductCost() / periodMonths) * leftMonths)
+                    .build();
+
+            List<MonthlyPlan> plansForThisMonth = generatePlan(goalDetailForMonth, goal);
+            for(MonthlyPlan plan : plansForThisMonth) {
+                goal.addMonthlyPlan(monthlyPlanRepository.save(plan));
+            }
+            plans.addAll(plansForThisMonth);
+        }
+
         List<UsableMoneyResponse> details = plans.stream().map(it -> {
             return UsableMoneyResponse.builder()
                     .category(it.getId().getCategory().name())
@@ -153,6 +194,19 @@ public class GoalServiceImpl implements GoalService {
         User user = userFacade.queryCurrentUser(true)
                 .orElseThrow(UserNotFoundException::new);
         user.getGoal().decideGoal();
+    }
+
+    @Override
+    @Transactional
+    public void finishGoal(GoalFinishType finishType) {
+        User user = userFacade.queryCurrentUser(true)
+                .orElseThrow(UserNotFoundException::new);
+
+        GoalHistory history = GoalHistory.getInstanceByParent(user.getGoal().getParentInstance(),
+                user, GoalFinishType.SUCCESS.equals(finishType));
+        user.addGoalHistory(history);
+
+        user.setGoal(null);
     }
 
     @Override
@@ -185,5 +239,26 @@ public class GoalServiceImpl implements GoalService {
                 .pageCount(bills.getTotalPages())
                 .result(expenditures)
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GoalHistoriesResponse getMyGoalHistories() {
+        final SimpleDateFormat timeFormatter = new SimpleDateFormat("yyyy-MM-dd");
+        User user = userFacade.queryCurrentUser(true)
+                .orElseThrow(UserNotFoundException::new);
+
+        return new GoalHistoriesResponse(
+                user.getGoalHistories().stream().map(history -> {
+                    return GoalHistoryResponse.builder()
+                            .productName(history.getProductName())
+                            .cost(history.getProductCost())
+                            .isSuccess(history.getIsSuccess())
+                            .imageUrl(history.getProductImageUrl())
+                            .startAt(timeFormatter.format(history.getStartAt()))
+                            .finishAt(timeFormatter.format(history.getFinishAt()))
+                            .build();
+                }).collect(Collectors.toList())
+        );
     }
 }
