@@ -60,6 +60,7 @@ public class JwtTokenProvider {
             return Jwts.parser().setSigningKey(jwtProperties.getSecretKey())
                     .parseClaimsJws(token).getBody();
         } catch (RuntimeException e) {
+            e.printStackTrace();
             throw new RuntimeException("Token body Exception");
         }
     }

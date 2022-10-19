@@ -17,11 +17,6 @@ public class SignupRequest {
     @Email(message = "올바른 이메일을 입력해야 합니다")
     private final String email;
 
-    @ApiModelProperty("로그인 아이디")
-    @JsonProperty("id")
-    @Length(min=4, message = "사용자 아이디는 4자리 이상이여야 합니다")
-    private final String loginId;
-
     @ApiModelProperty("이름 (실명)")
     @Length(min=2, message = "이름은 2자리 이상이여야 합니다")
     private final String name;

@@ -45,7 +45,7 @@ public class FintechService {
         builder.append("scope=login inquiry&");
         builder.append(String.format("state=%s&", csrfService.generateToken()));
         builder.append("auth_type=0&");
-        builder.append(String.format("client_info=%s&", jwtTokenProvider.generateExternalApiToken(user.getLoginId())));
+        builder.append(String.format("client_info=%s&", jwtTokenProvider.generateExternalApiToken(user.getEmail())));
         builder.append("cellphone_cert_yn=Y&");
         builder.append("authorized_cert_yn=N&");
         builder.append("account_hold_auth_yn=N");

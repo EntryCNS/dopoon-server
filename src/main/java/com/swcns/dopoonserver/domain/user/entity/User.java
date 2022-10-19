@@ -37,10 +37,6 @@ public class User implements UserDetails {
 
     @NotNull
     @Column(unique = true)
-    private String loginId;
-
-    @NotNull
-    @Column(unique = true)
     private String email;
 
     @NotNull

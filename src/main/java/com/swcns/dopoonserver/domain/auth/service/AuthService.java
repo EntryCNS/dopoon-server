@@ -31,15 +31,11 @@ public class AuthService {
         return LocalDate.parse(input, DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
     public void signUp(SignupRequest signupRequest) {
-        Optional<User> existUserWithLoginId = userRepository.findByLoginId(signupRequest.getLoginId());
-        existUserWithLoginId.ifPresent((user) -> { throw new UserAlreadyExistsException(UserAlreadyExistsException.ExistsType.LOGIN_ID); });
-
-        Optional<User> existUserWithEmail = userRepository.findByLoginId(signupRequest.getLoginId());
+        Optional<User> existUserWithEmail = userRepository.findByEmail(signupRequest.getEmail());
         existUserWithEmail.ifPresent((user) -> { throw new UserAlreadyExistsException(UserAlreadyExistsException.ExistsType.EMAIL); });
 
         User newUser = User.builder()
                 .userName(signupRequest.getName())
-                .loginId(signupRequest.getLoginId())
                 .email(signupRequest.getEmail())
                 .password(passwordEncoder.encode(signupRequest.getPassword()))
                 .birthday(getDateFromString(signupRequest.getBirthDay()))
@@ -48,8 +44,7 @@ public class AuthService {
     }
 
     public SignInResponse signIn(SignInRequest signInRequest) {
-        User queryUser = userRepository.findByLoginIdOrEmail(signInRequest.getEmailOrId(),
-                signInRequest.getEmailOrId())
+        User queryUser = userRepository.findByEmail(signInRequest.getEmail())
                 .orElseThrow(UserNotFoundException::new);
 
         String userPassword = queryUser.getPassword();
@@ -57,7 +52,7 @@ public class AuthService {
 
         if(!passwordEncoder.matches(queryPassword, userPassword)) { throw new UserNotFoundException(); }
 
-        String accessToken = jwtTokenProvider.generateAccessToken(queryUser.getLoginId());
+        String accessToken = jwtTokenProvider.generateAccessToken(queryUser.getEmail());
 
         return SignInResponse.builder()
                 .accessToken(accessToken)
