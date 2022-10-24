@@ -19,5 +19,5 @@ public class ExpenditureListResponse {
     private int pageCount;
 
     @ApiModelProperty("조회 결과")
-    private List<ExpenditureResponse> result;
+    private List<ExpenditureGroupResponse> result;
 }

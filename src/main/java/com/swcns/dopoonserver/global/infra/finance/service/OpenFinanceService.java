@@ -11,6 +11,7 @@ import com.swcns.dopoonserver.global.infra.finance.FinanceProperties;
 import com.swcns.dopoonserver.global.infra.finance.http.FinanceAccountHttpApi;
 import com.swcns.dopoonserver.global.infra.finance.http.FinanceTokenHttpApi;
 import com.swcns.dopoonserver.global.infra.finance.http.FinanceUserHttpApi;
+import com.swcns.dopoonserver.global.infra.kakao.KakaoService;
 import com.swcns.dopoonserver.global.utils.RandomUtil;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
@@ -38,7 +39,7 @@ public class OpenFinanceService {
     private final FinanceTokenHttpApi financeTokenHttpApi;
     private final FinanceUserHttpApi financeUserHttpApi;
     private final FinanceAccountHttpApi financeAccountHttpApi;
-    private final UserFacade userFacade;
+    private final KakaoService kakaoService;
     private final RandomUtil randomUtil;
 
     @ToString
@@ -152,7 +153,7 @@ public class OpenFinanceService {
                                     ))
                                     .storeName(it.getBranchName())
                                     .price(Integer.parseInt(it.getTranAmt()))
-                                    .billCategory(BillCategory.ETC)
+                                    .billCategory(kakaoService.getCategory(it.getBranchName()))
                                     .build())
                     .collect(Collectors.toList());
         } catch (Exception ex) {

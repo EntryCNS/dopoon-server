@@ -13,6 +13,7 @@ import com.swcns.dopoonserver.global.infra.finance.service.OpenFinanceService;
 import com.swcns.dopoonserver.global.security.JwtTokenProvider;
 import com.swcns.dopoonserver.global.utils.csrf.CsrfService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 
 import static com.swcns.dopoonserver.global.infra.finance.service.OpenFinanceService.*;
 
+@Log4j2
 @RequiredArgsConstructor
 @Service
 public class FintechService {
@@ -55,6 +57,8 @@ public class FintechService {
 
     @Transactional(rollbackFor = RuntimeException.class)
     public void registerFintech(String code, String jwtString) {
+        log.info("Card registration");
+
         User user = userRepository.findById(((User) jwtTokenProvider.authentication(jwtString).getPrincipal()).getId())
                 .orElseThrow(UserNotFoundException::new);
         if(user.getFintechToken() != null) {

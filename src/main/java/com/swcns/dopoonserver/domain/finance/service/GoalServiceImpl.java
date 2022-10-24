@@ -218,7 +218,7 @@ public class GoalServiceImpl implements GoalService {
         User user = userFacade.queryCurrentUser()
                 .orElseThrow(UserNotFoundException::new);
 
-        Pageable pageRequest = PageRequest.of(page, 10, Sort.by("billedAt", "storeName").descending());
+        Pageable pageRequest = PageRequest.of(page, 10);
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = LocalDate.of(year, month, 31);
 
@@ -234,10 +234,19 @@ public class GoalServiceImpl implements GoalService {
                     .build();
         }).collect(Collectors.toList());
 
+        List<ExpenditureGroupResponse> groups = expenditures.stream()
+                .collect(Collectors.groupingByConcurrent(it -> it.getPurchasedAt().split(" ")[0]))
+                .entrySet().stream()
+                .map(entry -> ExpenditureGroupResponse.builder()
+                        .date(entry.getKey())
+                        .list(entry.getValue())
+                        .build())
+                .collect(Collectors.toList());
+
         return ExpenditureListResponse.builder()
                 .page(page)
                 .pageCount(bills.getTotalPages())
-                .result(expenditures)
+                .result(groups)
                 .build();
     }
 

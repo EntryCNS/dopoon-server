@@ -5,6 +5,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Date;
 
+@Log4j2
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
@@ -44,8 +46,10 @@ public class JwtTokenProvider {
     }
 
     public Authentication authentication(String token) {
+        //log.info("let's search {}", token);
         UserDetails userDetails = authDetailsService
                 .loadUserByUsername(getTokenSubject(token));
+        log.info(userDetails);
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 

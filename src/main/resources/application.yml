@@ -32,3 +32,5 @@ infra:
     client-id: ${FINANCE_API_ID}
     client-secret: ${FINANCE_API_SECRET}
     use-organization-code: ${FINANCE_API_ORG_CODE}
+  kakao:
+    api-key: ${KAKAO_INFRA_KEY}
